@@ -1,0 +1,6 @@
+name = UXG
+description = Adds uxg_field stored in database
+core = 7.x
+package = UXG
+
+dependencies[] = views

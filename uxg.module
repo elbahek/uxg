@@ -1,0 +1,98 @@
+<?php
+/**
+ * @file
+ * UXG main module file
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Adds uxg_field to every content type form.
+ */
+function uxg_form_alter(&$form, &$form_state, $form_id) {
+  $form_id_list = array();
+  foreach (node_type_get_types() as $type_info) {
+    $form_id_list[] = $type_info->type . '_node_form';
+  }
+
+  if (in_array($form_id, $form_id_list)) {
+    $uxg_field_value = isset($form['#node']->uxg_field) ? $form['#node']->uxg_field : NULL;
+    $form['title']['#weight'] = -6;
+    $form['uxg_field'] = array(
+      '#title' => t('UXG field'),
+      '#type' => 'textarea',
+      '#rows' => 4,
+      '#description' => t('Type anything you want here. This field is purely optional.'),
+      '#weight' => -5,
+      '#default_value' => $uxg_field_value,
+    );
+  }
+}
+
+/**
+ * Implementation of hook_node_insert().
+ */
+function uxg_node_insert($node) {
+  if (isset($node->uxg_field)) {
+    db_insert('uxg_field')
+      ->fields(array(
+        'nid' => $node->nid,
+        'value' => $node->uxg_field,
+      ))
+      ->execute();
+  }
+}
+
+/**
+ * Implementation of hook_node_update().
+ */
+function uxg_node_update($node) {
+  if (isset($node->uxg_field)) {
+    db_update('uxg_field')
+      ->fields(array(
+        'value' => $node->uxg_field,
+      ))
+      ->condition('nid', $node->nid)
+      ->execute();
+  }
+}
+
+/**
+ * Implementation of hook_node_delete().
+ */
+function uxg_node_delete($node) {
+  if (isset($node->uxg_field)) {
+    db_delete('uxg_field')
+      ->condition('nid', $node->nid)
+      ->execute();
+  }
+}
+
+/**
+ * Implementation of hook_node_load().
+ *
+ * Adds uxg_field to nodes on load
+ */
+function uxg_node_load($nodes, $types) {
+  $uxg_field_data = db_select('uxg_field', 'uf')
+    ->fields('uf', array('nid', 'value'))
+    ->execute()
+    ->fetchAllKeyed();
+
+  foreach ($nodes as $nid => $node) {
+    $node->uxg_field = isset($uxg_field_data[$nid])
+      ? $uxg_field_data[$nid]
+      : NULL;
+  }
+}
+
+
+/**
+ * Implementation of hook_views_api().
+ */
+function uxg_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'uxg') . '/views',
+  );
+}
