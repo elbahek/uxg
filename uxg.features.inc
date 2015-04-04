@@ -35,6 +35,7 @@ function uxg_features_export_render($module_name, $data, $export = NULL) {
     ->execute()
     ->fetchAllKeyed();
   $code = array();
+  $code[] = ' $uxg = array();';
   foreach ($uxg_data as $uuid => $value) {
     $code[] = ' $uxg["' . $uuid . '"] = "' . $value . '";';
   }
@@ -50,14 +51,23 @@ function uxg_features_export_render($module_name, $data, $export = NULL) {
  */
 function uxg_features_rebuild($module) {
   $items = module_invoke($module, 'uxg_features_uxg_values');
-  $insert_query = db_insert('uxg_field');
-  foreach ($items as $uuid => $value) {
-    $insert_query->fields(array(
-      'uuid' => $uuid,
-      'value' => $value,
-    ));
+  $present_uuids = db_select('uxg_field', 'uf')
+    ->fields('uf', array('uuid'))
+    ->execute()
+    ->fetchCol();
+  if (count(array_diff(array_keys($items), $present_uuids)) > 0) {
+    $insert_query = db_insert('uxg_field');
+    foreach ($items as $uuid => $value) {
+      if (in_array($uuid, $present_uuids)) {
+        continue;
+      }
+      $insert_query->fields(array(
+        'uuid' => $uuid,
+        'value' => $value,
+      ));
+    }
+    $insert_query->execute();
   }
-  $insert_query->execute();
 }
 
 /**
