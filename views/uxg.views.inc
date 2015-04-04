@@ -8,8 +8,8 @@ function uxg_views_data() {
 
   $data['uxg_field']['table']['join'] = array(
     'node' => array(
-      'left_field' => 'nid',
-      'field' => 'nid',
+      'left_field' => 'uuid',
+      'field' => 'uuid',
     ),
   );
 

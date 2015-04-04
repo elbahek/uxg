@@ -36,7 +36,7 @@ function uxg_node_insert($node) {
   if (isset($node->uxg_field)) {
     db_insert('uxg_field')
       ->fields(array(
-        'nid' => $node->nid,
+        'uuid' => $node->uuid,
         'value' => $node->uxg_field,
       ))
       ->execute();
@@ -52,7 +52,7 @@ function uxg_node_update($node) {
       ->fields(array(
         'value' => $node->uxg_field,
       ))
-      ->condition('nid', $node->nid)
+      ->condition('uuid', $node->uuid)
       ->execute();
   }
 }
@@ -63,7 +63,7 @@ function uxg_node_update($node) {
 function uxg_node_delete($node) {
   if (isset($node->uxg_field)) {
     db_delete('uxg_field')
-      ->condition('nid', $node->nid)
+      ->condition('uuid', $node->uuid)
       ->execute();
   }
 }
@@ -74,14 +74,20 @@ function uxg_node_delete($node) {
  * Adds uxg_field to nodes on load
  */
 function uxg_node_load($nodes, $types) {
+  $uuids = array();
+  foreach ($nodes as $node) {
+    $uuids[] = $node->uuid;
+  }
+
   $uxg_field_data = db_select('uxg_field', 'uf')
-    ->fields('uf', array('nid', 'value'))
+    ->fields('uf', array('uuid', 'value'))
+    ->condition('uuid', $uuids)
     ->execute()
     ->fetchAllKeyed();
 
-  foreach ($nodes as $nid => $node) {
-    $node->uxg_field = isset($uxg_field_data[$nid])
-      ? $uxg_field_data[$nid]
+  foreach ($nodes as $node) {
+    $node->uxg_field = isset($uxg_field_data[$node->uuid])
+      ? $uxg_field_data[$node->uuid]
       : NULL;
   }
 }
@@ -94,5 +100,19 @@ function uxg_views_api() {
   return array(
     'api' => 3,
     'path' => drupal_get_path('module', 'uxg') . '/views',
+  );
+}
+
+/**
+ * Implementation of hook_features_api().
+ */
+function uxg_features_api() {
+  return array(
+    'uxg' => array(
+      'name' => 'UXG',
+      'file' => drupal_get_path('module', 'uxg') . '/uxg.features.inc',
+      'default_hook' => 'uxg_features_uxg_values',
+      'feature_source' => TRUE,
+    ),
   );
 }

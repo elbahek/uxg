@@ -12,8 +12,8 @@ function uxg_schema() {
   $schema['uxg_field'] = array(
     'description' => 'Table holds artificial field for every content type.',
     'fields' => array(
-      'nid' => array(
-        'description' => 'Relation to node.nid',
+      'uuid' => array(
+        'description' => 'Relation to node.uuid',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -24,7 +24,7 @@ function uxg_schema() {
         'not null' => FALSE,
       ),
     ),
-    'primary key' => array('nid'),
+    'primary key' => array('uuid'),
   );
 
   return $schema;
