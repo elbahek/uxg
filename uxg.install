@@ -15,7 +15,7 @@ function uxg_schema() {
       'uuid' => array(
         'description' => 'Relation to node.uuid',
         'type' => 'char',
-        'size' => 36,
+        'length' => 36,
         'not null' => TRUE,
       ),
       'value' => array(
